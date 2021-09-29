@@ -3,22 +3,25 @@
 
 import sys
 
-class Item:
-    def __init__(self, value, weight):
-        self.value = value
-        self.weight = weight
+def knapsack_solver(values, weights, capacity):
+    n = len(values)
+    dp = [[0 for _ in range(n + 1)] for _ in range(capacity + 1)]
+    for k in range(1, capacity + 1):
+        for i in range(1, n+1):
+            dp[k][i] = dp[k][i-1]
+            if weights[i-1] <= k:
+                add_item_val = dp[k - weights[i-1]][i-1] + values[i-1]
+                dp[k][i] = max(dp[k][i], add_item_val)
 
-def knapsack_solver(items, capacity):
-    total_value = 0
-    n = len(items)
+    total_val = dp[capacity][n]
     taken = ["0" for _ in range(n)]
-    for i in range(n):
-        if items[i].weight <= capacity:
-            taken[i] = "1"
-            capacity -= items[i].weight
-            total_value += items[i].value
-    return "{0} 0\n{1}".format(total_value, " ".join(taken))
+    while (capacity > 0  and n > 0):
+        if (dp[capacity][n] != dp[capacity][n-1]):
+            taken[n-1] = "1"
+            capacity -= weights[n-1]
+        n -= 1
 
+    return "{0} 1\n{1}".format(total_val, " ".join(taken))
 
 
 def solve_it(input_data):
@@ -26,11 +29,13 @@ def solve_it(input_data):
     firstLine = lines[0].split()
     item_count = int(firstLine[0])
     capacity = int(firstLine[1])
-    items = [None for _ in range(item_count)]
+    values = [None for _ in range(item_count)]
+    weights = [None for _ in range(item_count)]
     for i in range(item_count):
         line = lines[i+1].split()
-        items[i] = Item(int(line[0]), int(line[1]))
-    return knapsack_solver(items, capacity)
+        values[i] = int(line[0])
+        weights[i] = int(line[1])
+    return knapsack_solver(values, weights, capacity)
 
 
 if __name__ == '__main__':
