@@ -4,6 +4,9 @@
 Used to define methods for solving the knapsack problem.
 
 """
+from BranchNode import BranchNode
+from collections import deque
+
 def backtrack(n, capacity, dp, weights):
     curr_capacity = capacity
     curr_item = n
@@ -15,6 +18,7 @@ def backtrack(n, capacity, dp, weights):
         curr_item -= 1
     return taken
 
+
 def run_dp_knapsack(values, weights, capacity, n):
     dp = [[0 for _ in range(n+1)] for _ in range(capacity+1)]
     for k in range(1, capacity+1):
@@ -25,8 +29,37 @@ def run_dp_knapsack(values, weights, capacity, n):
                 dp[k][j] = max(dp[k][j], add_item_val)
     return dp
 
+
 def dp_solver(values, weights, capacity):
     n = len(values)
     dp = run_dp_knapsack(values, weights, capacity, n)
     taken = backtrack(n, capacity, dp, weights)
     return "{0} 1\n{1}".format(dp[capacity][n], " ".join(taken))
+
+
+def solve_fractional_knapsack(values, weights, capacity, n):
+    item_tups = [(values[i], weights[i]) for i in range(n)]
+    item_tups.sort(key=lambda item_tup: item_tup[0]/item_tup[1],
+                   reverse=True)
+    total_val = 0
+    item_idx = 0
+    while (capacity > 0 and item_idx < n):
+        if item_tups[item_idx][1] <= capacity:
+            capacity -= item_tups[item_idx][1]
+            total_val += item_tups[item_idx][0]
+        else:
+            frac_taken = capacity / item_tups[item_idx][1]
+            total_val += frac_taken * item_tups[item_idx][0]
+            capacity = 0
+        item_idx += 1
+    return total_val
+
+def branch_and_bound(values, weights, capacity):
+    n = len(values)
+    bb_stack = deque([BranchNode(
+        set(), -1, 0, solve_fractional_knapsack(
+            values, weights, capacity, n))])
+    curr_best = 0
+    while (bb_stack):
+        curr_node = bb_stack.popleft()
+    return ""
