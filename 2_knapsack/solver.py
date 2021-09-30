@@ -2,26 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-
-def knapsack_solver(values, weights, capacity):
-    n = len(values)
-    dp = [[0 for _ in range(n + 1)] for _ in range(capacity + 1)]
-    for k in range(1, capacity + 1):
-        for i in range(1, n+1):
-            dp[k][i] = dp[k][i-1]
-            if weights[i-1] <= k:
-                add_item_val = dp[k - weights[i-1]][i-1] + values[i-1]
-                dp[k][i] = max(dp[k][i], add_item_val)
-
-    total_val = dp[capacity][n]
-    taken = ["0" for _ in range(n)]
-    while (capacity > 0  and n > 0):
-        if (dp[capacity][n] != dp[capacity][n-1]):
-            taken[n-1] = "1"
-            capacity -= weights[n-1]
-        n -= 1
-
-    return "{0} 1\n{1}".format(total_val, " ".join(taken))
+import methods
 
 
 def solve_it(input_data):
@@ -35,7 +16,7 @@ def solve_it(input_data):
         line = lines[i+1].split()
         values[i] = int(line[0])
         weights[i] = int(line[1])
-    return knapsack_solver(values, weights, capacity)
+    return methods.dp_solver(values, weights, capacity)
 
 
 if __name__ == '__main__':
