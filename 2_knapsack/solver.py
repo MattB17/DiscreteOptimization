@@ -18,6 +18,7 @@ def solve_it(input_data):
         values[i] = int(line[0])
         weights[i] = int(line[1])
     start = time.time()
+    capacity, weights = methods.scale_inputs(capacity, weights, item_count)
     result = methods.branch_and_bound(values, weights, capacity)
     end = time.time()
     print(end - start)
