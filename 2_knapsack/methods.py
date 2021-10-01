@@ -37,13 +37,13 @@ def dp_solver(values, weights, capacity):
     return "{0} 1\n{1}".format(dp[capacity][n], " ".join(taken))
 
 
-def solve_fractional_knapsack(values, weights, capacity, n):
-    item_tups = [(values[i], weights[i]) for i in range(n)]
-    item_tups.sort(key=lambda item_tup: item_tup[0]/item_tup[1],
-                   reverse=True)
+def solve_fractional_knapsack(item_tups, cutoff, capacity, n):
     total_val = 0
     item_idx = 0
     while (capacity > 0 and item_idx < n):
+        if (item_tups[item_idx][2] <= cutoff):
+            item_idx += 1
+            continue
         if item_tups[item_idx][1] <= capacity:
             capacity -= item_tups[item_idx][1]
             total_val += item_tups[item_idx][0]
@@ -54,47 +54,52 @@ def solve_fractional_knapsack(values, weights, capacity, n):
         item_idx += 1
     return total_val
 
-def initialize_branch_and_bound(values, weights, capacity, n):
+def filter_items(item_tuples, cutoff):
+    return [item_tuple for item_tuple in item_tuples
+            if item_tuple[2] > cutoff]
+
+def initialize_branch_and_bound(item_tups, capacity, n):
     first_node = BranchNode(
         set(), -1, capacity, 0,
-        solve_fractional_knapsack(values, weights, capacity, n))
+        solve_fractional_knapsack(item_tups, -1, capacity, n))
     return deque([first_node])
 
-def branch_right(node, next_item, n, values, weights):
-    max_val = node.curr_value + solve_fractional_knapsack(
-        values[next_item+1:], weights[next_item+1:],
-        node.rem_capacity, n - next_item - 1)
-    right_node = BranchNode(node.curr_items, next_item, node.rem_capacity,
-                            node.curr_value, max_val)
+def branch_right(node, next_item, n, item_tups):
+    max_val = node.val + solve_fractional_knapsack(
+        item_tups, next_item, node.cap, n - next_item - 1)
+    right_node = BranchNode(
+        node.items, next_item, node.cap, node.val, max_val)
     return right_node
 
-def branch_left(node, next_item, n, values, weights):
-    curr_items = node.curr_items.union({next_item})
-    rem_cap = node.rem_capacity - weights[next_item]
-    curr_val = node.curr_value + values[next_item]
+def branch_left(node, next_item, n, item_tups, values, weights):
+    curr_items = node.items.union({next_item})
+    rem_cap = node.cap - weights[next_item]
+    curr_val = node.val + values[next_item]
     max_val = curr_val + solve_fractional_knapsack(
-        values[next_item+1:], weights[next_item+1:],
-        rem_cap, n - next_item - 1)
+        item_tups, next_item, rem_cap, n - next_item - 1)
     left_node = BranchNode(curr_items, next_item, rem_cap, curr_val, max_val)
     return left_node
 
 def branch_and_bound(values, weights, capacity):
     n = len(values)
-    bb_stack = initialize_branch_and_bound(values, weights, capacity, n)
+    item_tups = [(values[i], weights[i], i) for i in range(n)]
+    item_tups.sort(key=lambda item_tup: item_tup[0]/item_tup[1],
+                   reverse=True)
+    bb_stack = initialize_branch_and_bound(item_tups, capacity, n)
     curr_best = 0
     best_soln = set()
     while (bb_stack):
         curr_node = bb_stack.popleft()
-        next_item = curr_node.get_branch_item()
-        if (curr_node.curr_value > curr_best):
-            curr_best = curr_node.curr_value
-            best_soln = curr_node.curr_items
-        if (curr_node.max_value > curr_best and next_item < n):
+        next_item = curr_node.last_item + 1
+        if (curr_node.val > curr_best):
+            curr_best = curr_node.val
+            best_soln = curr_node.items
+        if (curr_node.max_val > curr_best and next_item < n):
             bb_stack.appendleft(branch_right(
-                curr_node, next_item, n, values, weights))
-            if (weights[next_item] <= curr_node.rem_capacity):
+                curr_node, next_item, n, item_tups))
+            if (weights[next_item] <= curr_node.cap):
                 bb_stack.appendleft(branch_left(
-                    curr_node, next_item, n, values, weights))
+                    curr_node, next_item, n, item_tups, values, weights))
     taken = ["0" for _ in range(n)]
     for item in best_soln:
         taken[item] = "1"
