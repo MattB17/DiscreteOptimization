@@ -5,9 +5,11 @@ a node in the branch and bound algorithm for the knapsack problem.
 """
 
 class BranchNode:
-    def __init__(self, curr_items, last_item, curr_value, max_value):
+    def __init__(self, curr_items, last_item,
+                 rem_capacity, curr_value, max_value):
         self.curr_items = curr_items
         self.last_item = last_item
+        self.rem_capacity = rem_capacity
         self.curr_value = curr_value
         self.max_value = max_value
 
