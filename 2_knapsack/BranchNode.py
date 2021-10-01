@@ -14,4 +14,9 @@ class BranchNode:
         self.max_value = max_value
 
     def get_branch_item(self):
-        return self._last_item + 1
+        return self.last_item + 1
+
+    def __str__(self):
+        return "------------\n{0}\n{1}\n{2}\n{3}\n{4}\n------------".format(
+            self.curr_items, self.last_item, self.rem_capacity,
+            self.curr_value, self.max_value)

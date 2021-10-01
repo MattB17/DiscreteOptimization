@@ -54,11 +54,33 @@ def solve_fractional_knapsack(values, weights, capacity, n):
         item_idx += 1
     return total_val
 
+def initialize_branch_and_bound(values, weights, capacity, n):
+    first_node = BranchNode(
+        set(), -1, capacity, 0,
+        solve_fractional_knapsack(values, weights, capacity, n))
+    return deque([first_node])
+
+def branch_right(node, next_item, n, values, weights):
+    max_val = node.curr_value + solve_fractional_knapsack(
+        values[next_item+1:], weights[next_item+1:],
+        node.rem_capacity, n - next_item - 1)
+    right_node = BranchNode(node.curr_items, next_item, node.rem_capacity,
+                            node.curr_value, max_val)
+    return right_node
+
+def branch_left(node, next_item, n, values, weights):
+    curr_items = node.curr_items.union({next_item})
+    rem_cap = node.rem_capacity - weights[next_item]
+    curr_val = node.curr_value + values[next_item]
+    max_val = curr_val + solve_fractional_knapsack(
+        values[next_item+1:], weights[next_item+1:],
+        rem_cap, n - next_item - 1)
+    left_node = BranchNode(curr_items, next_item, rem_cap, curr_val, max_val)
+    return left_node
+
 def branch_and_bound(values, weights, capacity):
     n = len(values)
-    bb_stack = deque([BranchNode(
-        set(), -1, capacity, 0,
-        solve_fractional_knapsack(values, weights, capacity, n))])
+    bb_stack = initialize_branch_and_bound(values, weights, capacity, n)
     curr_best = 0
     best_soln = set()
     while (bb_stack):
@@ -68,20 +90,11 @@ def branch_and_bound(values, weights, capacity):
             curr_best = curr_node.curr_value
             best_soln = curr_node.curr_items
         if (curr_node.max_value > curr_best and next_item < n):
-            bb_stack.appendleft(BranchNode(
-                curr_node.curr_items, next_item, curr_node.rem_capacity,
-                curr_node.curr_value, solve_fractional_knapsack(
-                    values[next_item+1:], weights[next_item+1:],
-                    curr_node.rem_capacity, n - next_item - 1)))
+            bb_stack.appendleft(branch_right(
+                curr_node, next_item, n, values, weights))
             if (weights[next_item] <= curr_node.rem_capacity):
-                bb_stack.appendleft(BranchNode(
-                    curr_node.curr_items.union({next_item}, next_item,
-                    curr_node.rem_capacity - weights[next_item],
-                    curr_node.curr_value + values[next_item],
-                    solve_fractional_knapsack(
-                        values[next_item+1:], weights[next_item+1:],
-                        curr_node.rem_capacity - weights[next_item],
-                        n - next_item - 1))))
+                bb_stack.appendleft(branch_left(
+                    curr_node, next_item, n, values, weights))
     taken = ["0" for _ in range(n)]
     for item in best_soln:
         taken[item] = "1"

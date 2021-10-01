@@ -16,7 +16,7 @@ def solve_it(input_data):
         line = lines[i+1].split()
         values[i] = int(line[0])
         weights[i] = int(line[1])
-    return methods.dp_solver(values, weights, capacity)
+    return methods.branch_and_bound(values, weights, capacity)
 
 
 if __name__ == '__main__':
