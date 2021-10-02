@@ -134,9 +134,9 @@ def branch_and_bound(values, weights, capacity):
                     curr_best = val
                     best_soln = soln
             else:
-                bb_stack.appendleft(branch_right(
-                    curr_node, next_item, n, item_tups))
                 if (weights[next_item] <= curr_node.cap):
                     bb_stack.appendleft(branch_left(
                         curr_node, next_item, n, item_tups, values, weights))
+                bb_stack.appendleft(branch_right(
+                    curr_node, next_item, n, item_tups))
     return "{0} 1\n{1}".format(curr_best, " ".join(stringify(best_soln, n)))
