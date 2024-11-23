@@ -1,4 +1,4 @@
-### Coutning Soldiers
+# Coutning Soldiers
 We initially had less than 800 soldiers in our army but some fled
 * arranging the remaining into rows of length 5 leaves 2 out
 * arranging the remaining into rows of length 7 leaves 2 out
